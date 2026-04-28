@@ -28,6 +28,7 @@ class ChatRequest(BaseModel):
     session_id: str
     user_id: str
     message: str
+    model: str = "gpt-3.5-turbo"
 
 @app.get("/")
 def read_root():
@@ -48,7 +49,7 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
     
     # 4. Run Agent
     try:
-        raw_output = run_agent(request.message, chat_history)
+        raw_output = run_agent(request.message, chat_history, request.model)
         
         # 5. Extract metadata from raw output (find ```json ... ```)
         metadata = {}

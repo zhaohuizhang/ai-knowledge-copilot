@@ -27,9 +27,16 @@ function App() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState('');
+  const [selectedModel, setSelectedModel] = useState('gpt-3.5-turbo');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const userId = 'user_123'; // Mock user ID
+
+  const models = [
+    { id: 'gpt-3.5-turbo', name: 'OpenAI GPT-3.5' },
+    { id: 'gemini-1.5-flash', name: 'Google Gemini 3 Flash' },
+    { id: 'mock', name: 'Mock Model (Local)' }
+  ];
 
   useEffect(() => {
     const initSession = async () => {
@@ -64,6 +71,7 @@ function App() {
           session_id: sessionId,
           user_id: userId,
           message: input,
+          model: selectedModel,
         }),
       });
 
@@ -88,8 +96,21 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <div className="logo">AI Knowledge Copilot</div>
-        <div className="status">综拓业务经理智能助手</div>
+        <div className="logo-section">
+          <div className="logo">AI Knowledge Copilot</div>
+          <div className="status">综拓业务经理智能助手</div>
+        </div>
+        <div className="model-selector">
+          <select 
+            value={selectedModel} 
+            onChange={(e) => setSelectedModel(e.target.value)}
+            disabled={isLoading}
+          >
+            {models.map(m => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+        </div>
       </header>
 
       <main className="chat-container">
