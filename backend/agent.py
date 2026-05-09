@@ -1,16 +1,18 @@
 import json
 import os
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.agents import tool, create_tool_calling_agent, AgentExecutor
 
-from crm_api import MOCK_CRM_DATA
-from rag_utils import search_knowledge
+from rag_utils import search_knowledge, DIMENSION
+from database import SessionLocal
+from models import BankClient
 try:
-    from mock_llm import mock_run_agent
+    from mock_llm import mock_run_agent, MockEmbeddings
 except ImportError:
     mock_run_agent = None
+    MockEmbeddings = None
 
 # Define Tools
 @tool
@@ -19,9 +21,24 @@ def get_client_profile_tool(name: str) -> str:
     Fetch client profile from CRM. 
     Input should be the client's name.
     """
-    if name in MOCK_CRM_DATA:
-        return json.dumps(MOCK_CRM_DATA[name], ensure_ascii=False)
-    return "Client not found in CRM."
+    db = SessionLocal()
+    try:
+        client = db.query(BankClient).filter(BankClient.name == name).first()
+        if client:
+            return json.dumps({
+                "client_id": f"C{client.id:04d}",
+                "name": client.name,
+                "age": client.age,
+                "gender": client.gender,
+                "occupation": client.occupation,
+                "risk_level": client.risk_level,
+                "total_assets": client.total_assets,
+                "insurance_preferences": client.insurance_preferences
+            }, ensure_ascii=False)
+        
+        return "Client not found in CRM."
+    finally:
+        db.close()
 
 @tool
 def search_knowledge_tool(query: str) -> str:
@@ -29,10 +46,15 @@ def search_knowledge_tool(query: str) -> str:
     Search the knowledge base for insurance products and policies.
     Input should be a search query.
     """
-    if not os.getenv("OPENAI_API_KEY"):
-        return "Knowledge base search is currently unavailable (Missing OpenAI API Key for embeddings)."
+    if os.getenv("GOOGLE_API_KEY"):
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+    elif os.getenv("OPENAI_API_KEY"):
+        embeddings = OpenAIEmbeddings()
+    elif MockEmbeddings:
+        embeddings = MockEmbeddings(dimension=DIMENSION)
+    else:
+        return "Knowledge base search is currently unavailable."
         
-    embeddings = OpenAIEmbeddings()
     results = search_knowledge(query, embeddings, top_k=3)
     if not results:
         return "No relevant information found in the knowledge base."

@@ -1,12 +1,11 @@
-import requests
 import os
 from dotenv import load_dotenv
-
 load_dotenv()
-api_key = os.environ.get("GOOGLE_API_KEY")
-url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
-r = requests.get(url)
-models = r.json().get("models", [])
-for m in models:
-    if 'generateContent' in m.get('supportedGenerationMethods', []):
-        print(m['name'])
+import google.generativeai as genai
+
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+print("Available models supporting embeddings:")
+for m in genai.list_models():
+    if 'embedContent' in m.supported_generation_methods:
+        print(f"- {m.name}")

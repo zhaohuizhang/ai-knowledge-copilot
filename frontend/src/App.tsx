@@ -56,7 +56,7 @@ function App() {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !sessionId) return;
 
     const userMsg: Message = { role: 'user', content: input };
     setMessages((prev) => [...prev, userMsg]);

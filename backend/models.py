@@ -26,3 +26,17 @@ class ChatMessage(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     session = relationship("ChatSession", back_populates="messages")
+
+class BankClient(Base):
+    __tablename__ = 'bank_clients'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), index=True, unique=True)
+    age = Column(Integer)
+    gender = Column(String(20))
+    occupation = Column(String(100))
+    risk_level = Column(String(50)) # e.g., Conservative, Aggressive
+    total_assets = Column(Integer) # In some currency units
+    insurance_preferences = Column(Text) # JSON or Text description
+    created_at = Column(DateTime, default=datetime.utcnow)
+

@@ -6,7 +6,7 @@ from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Colle
 MILVUS_HOST = os.getenv("MILVUS_HOST", "127.0.0.1")
 MILVUS_PORT = os.getenv("MILVUS_PORT", "19530")
 COLLECTION_NAME = "insurance_knowledge"
-DIMENSION = 1536 # Example for OpenAI text-embedding-3-small
+DIMENSION = 3072 # Actual dimension for gemini-embedding-001 in current environment
 
 def connect_milvus():
     connections.connect(host=MILVUS_HOST, port=MILVUS_PORT)

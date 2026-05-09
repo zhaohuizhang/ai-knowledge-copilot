@@ -1,33 +1,30 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from database import get_db
+from models import BankClient
+
 
 router = APIRouter(prefix="/api/crm", tags=["CRM"])
 
-# Mock CRM Database
-MOCK_CRM_DATA = {
-    "张总": {
-        "client_id": "C1001",
-        "name": "张总",
-        "age": 50,
-        "risk_tolerance": "稳健型",
-        "family_status": "已婚，一子一女",
-        "active_policies": ["金满钵养老年金"]
-    },
-    "李阿姨": {
-        "client_id": "C1002",
-        "name": "李阿姨",
-        "age": 62,
-        "risk_tolerance": "保守型",
-        "family_status": "退休",
-        "active_policies": []
-    }
-}
-
 @router.get("/client/{name}")
-def get_client_profile(name: str):
+def get_client_profile(name: str, db: Session = Depends(get_db)):
     """
-    Simulated internal CRM API endpoint to fetch client profile.
+    Simulated internal CRM API endpoint to fetch client profile from MySQL.
     Agent will use this tool to fetch context before querying RAG.
     """
-    if name not in MOCK_CRM_DATA:
+    client = db.query(BankClient).filter(BankClient.name == name).first()
+    
+    if not client:
         raise HTTPException(status_code=404, detail="Client not found in CRM")
-    return MOCK_CRM_DATA[name]
+    
+    # Return same structure as before for backward compatibility
+    return {
+        "client_id": f"C{client.id:04d}",
+        "name": client.name,
+        "age": client.age,
+        "gender": client.gender,
+        "occupation": client.occupation,
+        "risk_level": client.risk_level,
+        "total_assets": client.total_assets,
+        "insurance_preferences": client.insurance_preferences
+    }

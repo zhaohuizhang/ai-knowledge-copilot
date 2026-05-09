@@ -13,11 +13,14 @@ class MockChatOpenAI:
         pass
 
 class MockEmbeddings:
+    def __init__(self, dimension=3072):
+        self.dimension = dimension
+
     def embed_documents(self, texts):
-        return [[0.1] * 1536 for _ in texts]
+        return [[0.1] * self.dimension for _ in texts]
     
     def embed_query(self, query):
-        return [0.1] * 1536
+        return [0.1] * self.dimension
 
 def mock_run_agent(user_input, chat_history=None):
     user_input = user_input.lower()

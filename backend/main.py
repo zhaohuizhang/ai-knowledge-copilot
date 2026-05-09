@@ -36,6 +36,9 @@ def read_root():
 
 @app.post("/api/chat")
 def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
+    if not request.session_id:
+        raise HTTPException(status_code=400, detail="session_id is required and cannot be empty")
+    
     # 1. Fetch recent history
     history_objs = crud.get_recent_history(db, request.session_id)
     
